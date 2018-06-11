@@ -10,6 +10,7 @@ import util from './util'
 import page from './page'
 
 const { Provider, Consumer } = React.createContext()
+const EmptyView = () => null
 
 export default class Controller {
   static Provider = Provider
@@ -25,11 +26,11 @@ export default class Controller {
     this.SSR = true
     this.API = null
     this.Model = null
-    this.View = null
+    this.View = EmptyView
     this.store = null
     this.actions = {}
     this.reducer = null
-    this.enhancer = null
+    this.enhancer = undefined
     this.initialState = null
   }
 
@@ -75,7 +76,7 @@ export default class Controller {
         return state
       }
       Object.keys(handlers).forEach(type => {
-        this.actions[key] = payload => this.store.dispatch({ type, payload })
+        this.actions[type] = payload => this.store.dispatch({ type, payload })
       })
     }
     return createStore(reducer, preloadState, enhancer)
@@ -123,7 +124,9 @@ export default class Controller {
     }
 
     // if it was redirected by this.onCreate, return false
-    if (this.contex.res.finished || this.context.finished) {
+    let redirected = (this.isServer && this.context.res.finished) || (this.isClient && this.context.finished)
+
+    if (redirected) {
       return false
     }
 
@@ -241,7 +244,7 @@ export default class Controller {
      * parse json automatically
      */
     if (options.json !== false) {
-      fetchData = fetchData.then(_.toJSON)
+      fetchData = fetchData.then(util.toJSON)
     }
 
     /**
@@ -319,6 +322,7 @@ export default class Controller {
 
   // render component
   render() {
+    let { View } = this
     return (
       <Provider value={this}>
         <View state={this.state} ctrl={this} controller={this} />

@@ -4,6 +4,7 @@
 	"description": "an isomorphic mvc framework based on next.js, react, redux and immer",
 	"main": "lib/index.js",
 	"scripts": {
+		"dev": "babel --watch src --out-dir lib",
 		"build": "babel src --out-dir lib",
 		"test": "echo will do",
 		"prebuild": "rimraf ./lib",
