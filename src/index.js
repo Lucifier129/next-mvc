@@ -1,3 +1,6 @@
-import 'babel-polyfill'
-export Controller from './controller'
-export page from './page'
+import Controller from './controller'
+import page from './page'
+
+const Ctrl = Controller
+
+export { Controller, Ctrl, page }
