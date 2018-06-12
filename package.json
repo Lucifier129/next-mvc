@@ -22,6 +22,7 @@
 		"immer"
 	],
 	"files": [
+		"isomorphic",
 		"lib"
 	],
 	"author": "Jade Gu",

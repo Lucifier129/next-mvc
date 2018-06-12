@@ -1,53 +1,55 @@
 import 'babel-polyfill'
 import React from 'react'
-import { Ctrl } from 'next-mvc'
+import { Controller } from 'next-mvc'
 
-class Index extends Ctrl {
-  SSR = false
+class Index extends Controller {
+	SSR = true
 
-  Loading = () => 'loading...'
+	API = {
+		next: 'https://api.github.com/repos/zeit/next.js'
+	}
 
-  initialState = {
-    count: 0,
-    stars: 0
-  }
+	// if SSR = false, and Loading is got, show loading instead of empty
+	Loading = () => 'loading...'
 
-  reducer = {
-    stars: (state, stars) => (state.stars = stars),
-    count: (state, n = 1) => (state.count += n)
-  }
+	// initial state
+	initialState = {
+		count: 0,
+		stars: 0
+	}
 
-  View = View
+	// reducer
+	reducer = {
+		stars: (state, stars) => (state.stars = stars),
+		count: (state, n = 1) => (state.count += n)
+	}
 
-  API = {
-    next: 'https://api.github.com/repos/zeit/next.js'
-  }
+	// support async/await
+	async onCreate() {
+		let data = await this.get('next', null, {
+			credentials: ''
+		})
+		this.actions.stars(data.stargazers_count)
+	}
 
-  async onCreate() {
-    let data = await this.get('next', null, {
-      credentials: ''
-    })
-    this.actions.stars(data.stargazers_count)
-  }
+	onIncre = () => {
+		this.actions.count(+1)
+	}
 
-  onIncre = () => {
-    this.actions.count(+1)
-  }
+	onDecre = () => {
+		this.actions.count(-1)
+	}
 
-  onDecre = () => {
-    this.actions.count(-1)
-  }
+	render() {
+		return (
+			<React.Fragment>
+				<h1>Stars: {this.state.stars}</h1>
+				<button onClick={this.onIncre}>+1</button>
+				<span>{this.state.count}</span>
+				<button onClick={this.onDecre}>-1</button>
+			</React.Fragment>
+		)
+	}
 }
 
-function View({ state, ctrl }) {
-  return (
-    <React.Fragment>
-      <h1>Stars: {state.stars}</h1>
-      <button onClick={ctrl.onIncre}>+1</button>
-      <span>{state.count}</span>
-      <button onClick={ctrl.onDecre}>-1</button>
-    </React.Fragment>
-  )
-}
-
-export default Index.page('/')
+export default Index.page()
