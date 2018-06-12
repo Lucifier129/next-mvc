@@ -176,4 +176,9 @@ const page = path => Controller => {
 	}
 }
 
-export default page
+export default function (params) {
+  if (typeof params === 'function') {
+    return page()(params)
+  }
+  return page(params)
+}

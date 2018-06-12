@@ -10,7 +10,6 @@ import * as util from './util'
 import page from './page'
 
 const { Provider, Consumer } = React.createContext()
-const EmptyView = () => null
 
 export default class Controller {
 	static Provider = Provider

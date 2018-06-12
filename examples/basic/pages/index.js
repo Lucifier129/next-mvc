@@ -1,8 +1,9 @@
 import 'babel-polyfill'
 import React from 'react'
-import { Controller } from 'next-mvc'
+import { Controller, page } from 'next-mvc'
 
-class Index extends Controller {
+@page
+export default class Index extends Controller {
 	SSR = true
 
 	API = {
@@ -26,9 +27,7 @@ class Index extends Controller {
 
 	// support async/await
 	async onCreate() {
-		let data = await this.get('next', null, {
-			credentials: ''
-		})
+		let data = await this.get('next', null, { credentials: '' })
 		this.actions.stars(data.stargazers_count)
 	}
 
@@ -51,5 +50,3 @@ class Index extends Controller {
 		)
 	}
 }
-
-export default Index.page()
