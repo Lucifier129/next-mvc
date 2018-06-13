@@ -155,7 +155,9 @@ const page = path => Controller => {
 			let { View, Loading } = this.controller
 			let view = null
 
-			if (View) {
+			if (controller.render) {
+				view = controller.render()
+			} else if (View) {
 				view = (
 					<View
 						state={controller.state}
@@ -163,8 +165,6 @@ const page = path => Controller => {
 						controller={controller}
 					/>
 				)
-			} else if (controller.render) {
-				view = controller.render()
 			}
 
 			return (
@@ -176,9 +176,4 @@ const page = path => Controller => {
 	}
 }
 
-export default function (params) {
-  if (typeof params === 'function') {
-    return page()(params)
-  }
-  return page(params)
-}
+export default page

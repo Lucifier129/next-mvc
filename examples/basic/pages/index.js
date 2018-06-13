@@ -2,7 +2,7 @@ import 'babel-polyfill'
 import React from 'react'
 import { Controller, page } from 'next-mvc'
 
-@page
+@page()
 export default class Index extends Controller {
 	SSR = true
 
@@ -27,25 +27,25 @@ export default class Index extends Controller {
 
 	// support async/await
 	async onCreate() {
-		let data = await this.get('next', null, { credentials: '' })
-		this.actions.stars(data.stargazers_count)
+		// let data = await this.post('next')
+		// this.actions.stars(data)
 	}
 
-	onIncre = () => {
+	hanldeIncre = () => {
 		this.actions.count(+1)
 	}
 
-	onDecre = () => {
+	handleDecre = () => {
 		this.actions.count(-1)
 	}
 
 	render() {
 		return (
 			<React.Fragment>
-				<h1>Stars: {this.state.stars}</h1>
-				<button onClick={this.onIncre}>+1</button>
+				<h1>Stars: {this.state.count}</h1>
+				<button onClick={this.hanldeIncre}>+1</button>
 				<span>{this.state.count}</span>
-				<button onClick={this.onDecre}>-1</button>
+				<button onClick={this.handleDecre}>-1</button>
 			</React.Fragment>
 		)
 	}
