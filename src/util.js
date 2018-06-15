@@ -16,3 +16,7 @@ export function timeoutReject(promise, time = 0) {
 export function isAbsoluteUrl(url) {
 	return url.indexOf('http') === 0 || url.indexOf('//') === 0
 }
+
+export function isThenable(obj) {
+	return !!(obj && typeof obj.then === 'function')
+}

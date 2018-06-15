@@ -1,7 +1,4 @@
-import Controller, { ctrl } from './controller'
-import page from './page'
-import connect from './connect'
+import Page from './page'
+import Link from './link'
 
-const Ctrl = Controller
-
-export { Controller, Ctrl, page, connect }
+export { Page, Link }

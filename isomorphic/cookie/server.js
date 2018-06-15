@@ -1,7 +1,7 @@
 const cookie = require("cookie")
 
 const get = (name, req) => {
-  const cookies = cookie.parse(req.header.cookie)
+  const cookies = cookie.parse(req.headers.cookie)
   return cookies[name]
 }
 
