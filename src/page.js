@@ -1,11 +1,11 @@
 import React from 'react'
-import { createStore, applyMiddleware, compose } from 'redux'
+import { createStore } from 'redux'
 import immer from 'immer'
 import qs from 'query-string'
 import Router from 'next/router'
 import getConfig from 'next/config'
 import fetch from 'isomorphic-fetch'
-import cookie from 'isomorphic-cookie'
+import cookie from './isomorphic-cookie'
 import { format } from 'url'
 import * as util from './util'
 
@@ -14,6 +14,7 @@ const isClient = !isServer
 
 export default class Page extends React.Component {
 	static getInitialProps({ pathname, query, asPath, req, res }) {
+		util.checkComponent(this)
 		let { appPrefix = '' } = getConfig().publicRuntimeConfig
 		asPath = appPrefix + asPath
 
@@ -30,10 +31,7 @@ export default class Page extends React.Component {
 			}
 
 			return {
-				initialState: {
-					...page.state,
-					...initialState
-				},
+				initialState,
 				pathname,
 				query,
 				asPath
@@ -56,23 +54,26 @@ export default class Page extends React.Component {
 		this.immer = true
 		this.API = null
 		this.View = null
-		this.Loading = null
-		this._actions = null
+		this.$actions = null
+		this.$store = null
+		this.$cookie = cookie
 		this.state = {
 			...props.initialState
 		}
-		this.store = isClient ? this.createStore() : null
 	}
 
 	render() {
-		let { View, Loading } = this
+		let View = this.View
 		if (!View) {
-			if (Loading) {
-				return <Loading state={this.state} />
-			}
 			return null
 		}
-		return <View state={this.state} page={this} />
+		return <View state={this.state} page={this} handlers={this} ctrl={this} />
+	}
+
+	get store() {
+		if (this.$store) return this.$store
+		this.$store = this.createStore()
+		return this.$store
 	}
 
 	get isServer() {
@@ -83,29 +84,38 @@ export default class Page extends React.Component {
 		return isClient
 	}
 
-	get actions() {
-		if (this._actions) {
-			return this._actions
+	getUserAgent() {
+		if (isClient) {
+			return window.navigator.userAgent
 		}
-
-		this._actions = {}
-
-		if (this.reducer != null && typeof this.reducer === 'object') {
-			Object.keys(this.reducer).forEach(type => {
-				this._actions[type] = payload => this.store.dispatch({ type, payload })
-			})
+		if (this.props.req) {
+			throw new Error(
+				'Calling "getUserAgent" in unsupported life-cycle method, such like constructor'
+			)
 		}
-
-		return this._actions
+		return this.props.req.headers['user-agent']
 	}
 
-	createStore(enhancer) {
-		let finalReducer = (_, action) => {
+	get actions() {
+		if (this.$actions) return this.$actions
+		this.store // trigger createStore
+		this.$actions = {}
+		if (!util.isObject(this.reducer)) return this.$actions
+
+		Object.keys(this.reducer).forEach(type => {
+			this.$actions[type] = payload => this.store.dispatch({ type, payload })
+		})
+
+		return this.$actions
+	}
+
+	createReducer() {
+		return (state, action) => {
 			let reducer = this.reducer
-			let nextState = this.state
-			if (typeof reducer === 'object') {
+			let nextState = state
+			if (util.isObject(reducer)) {
 				let handler = reducer[action.type]
-				if (typeof handler === 'function') {
+				if (util.isFunction(handler)) {
 					if (this.immer) {
 						nextState = immer(nextState, draft => {
 							handler(draft, action.payload)
@@ -114,18 +124,15 @@ export default class Page extends React.Component {
 						nextState = handler(nextState, action.payload)
 					}
 				}
-			} else if (typeof reducer === 'function') {
+			} else if (util.isFunction(reducer)) {
 				nextState = reducer(nextState, action)
 			}
 			return nextState
 		}
+	}
 
-		// handle redux-devtools
-		if (
-			this.isClient &&
-			this.reduxDevtools &&
-			window.__REDUX_DEVTOOLS_EXTENSION__
-		) {
+	attachReduxDevtoolsIfNeeded(enhancer) {
+		if (isClient && this.reduxDevtools && window.__REDUX_DEVTOOLS_EXTENSION__) {
 			const options = {
 				name: window.location.pathname + window.location.search
 			}
@@ -138,9 +145,26 @@ export default class Page extends React.Component {
 				enhancer = composeEnhancers(enhancer)
 			}
 		}
+		return enhancer
+	}
 
-		let store = createStore(finalReducer, this.state, enhancer)
-		store.unsubscribe = store.subscribe(() => this.setState(store.getState()))
+	createStore(enhancer) {
+		let store = createStore(
+			this.createReducer(),
+			this.state,
+			this.attachReduxDevtoolsIfNeeded(enhancer)
+		)
+		store.unsubscribe = store.subscribe(() => {
+			if (isClient) {
+				let nextState = store.getState()
+				this.setState(nextState)
+			} else if (isServer) {
+				this.state = store.getState()
+			}
+		})
+		Object.defineProperty(store, 'actions', {
+			get: () => this.actions
+		})
 		return store
 	}
 
@@ -169,6 +193,9 @@ export default class Page extends React.Component {
 	// for api
 	prependApiPrefix(path) {
 		let apiPrefix = this.apiPrefix || this.getConfig('apiPrefix') || ''
+		if (this.isServer && apiPrefix.indexOf('//') === 0) {
+			apiPrefix = `http:${apiPrefix}`
+		}
 		return apiPrefix + path
 	}
 
@@ -179,7 +206,7 @@ export default class Page extends React.Component {
 	}
 
 	// redirect or page transition
-	go(url, replace = false, raw = false) {
+	goto(url, replace = false, raw = false) {
 		let { props } = this
 
 		// handle url object
@@ -224,6 +251,18 @@ export default class Page extends React.Component {
 		}
 	}
 
+	redirect(url, raw) {
+		return this.goto(url, true, raw)
+	}
+
+	back() {
+		return window.history.back()
+	}
+
+	forward() {
+		return window.history.forward()
+	}
+
 	// get config
 	getConfig(name) {
 		let { publicRuntimeConfig, serverRuntimeConfig } = getConfig()
@@ -236,9 +275,6 @@ export default class Page extends React.Component {
 
 	/**
 	 * fetch, https://github.github.io/fetch
-	 * options.json === false, it should not convert response to json automatically
-	 * options.timeout:number request timeout
-	 * options.raw === true, it should not add prefix to api
 	 */
 	fetch(api, options = {}) {
 		let { props, API } = this
@@ -255,11 +291,24 @@ export default class Page extends React.Component {
 			api = this.prependApiPrefix(api)
 		}
 
+		let { responseType = 'json', response = false } = options
+		let contentTypes = {
+			json: 'application/json',
+			text: 'text/plain'
+		}
+
 		let finalOptions = {
 			method: 'GET',
 			credentials: 'include',
-			...options,
-			headers: { 'Content-Type': 'application/json', ...options.headers }
+			...options
+		}
+
+		// handle content type
+		if (contentTypes.hasOwnProperty(responseType)) {
+			finalOptions.headers = {
+				'Content-Type': contentTypes[responseType],
+				...options.headers
+			}
 		}
 
 		/**
@@ -269,13 +318,19 @@ export default class Page extends React.Component {
 			finalOptions.headers['Cookie'] = props.req.headers.cookie || ''
 		}
 
-		let fetchData = fetch(api, finalOptions)
+		// use options.fetch if existed
+		let finalFetch = options.fetch || fetch
+		let fetchData = finalFetch(api, finalOptions)
 
 		/**
-		 * parse json automatically
+		 * parse to response type automatically
 		 */
-		if (options.json !== false) {
-			fetchData = fetchData.then(util.toJSON)
+		if (!response && responseType) {
+			fetchData = fetchData.then(res => {
+				if (!(responseType in res))
+					throw new Error(`${responseType} type is unsupported`)
+				return res[responseType]()
+			})
 		}
 
 		/**
@@ -320,7 +375,7 @@ export default class Page extends React.Component {
 		return this.fetch(api, {
 			...options,
 			method: 'POST',
-			body: typeof data === 'object' ? JSON.stringify(data) : String(data)
+			body: util.isPlainObject(data) ? JSON.stringify(data) : data
 		})
 	}
 
@@ -333,7 +388,7 @@ export default class Page extends React.Component {
 	}
 
 	getCookie(key) {
-		return cookie.get(key, this.props.req)
+		return this.$cookie.get(key, this.props.req)
 	}
 
 	setCookie(key, value, options) {
@@ -344,10 +399,10 @@ export default class Page extends React.Component {
 				expires: new Date(new Date() * 1 + options.expires * 864e5)
 			}
 		}
-		cookie.set(key, value, options, this.props.res)
+		this.$cookie.set(key, value, options, this.props.res)
 	}
 
 	removeCookie(key, options) {
-		cookie.remove(key, options, this.props.res)
+		this.$cookie.remove(key, options, this.props.res)
 	}
 }

@@ -1,8 +1,12 @@
 import 'babel-polyfill'
 import React from 'react'
-import { Page, Link } from 'next-mvc'
+import { Page, Link } from '../src'
 
 export default class IndexPage extends Page {
+	constructor() {
+		super()
+		super.componentDidMount()
+	}
 	API = {
 		next: 'https://api.github.com/repos/zeit/next.js',
 		config: 'https://sec-m.ctrip.com/restapi/soa2/12446/QConfig.json'

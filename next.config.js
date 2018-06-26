@@ -1,4 +1,4 @@
-const basename = '/tour/order_package'
+const basename = ''
 
 module.exports = {
 	assetPrefix: basename,

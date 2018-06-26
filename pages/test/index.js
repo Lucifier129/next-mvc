@@ -1,11 +1,10 @@
 import 'babel-polyfill'
 import React from 'react'
-import { Page } from 'next-mvc'
+import { Page, Link } from '../../src'
 import View from './View'
 import { initialState, reducer } from './Model'
 
 export default class TestPage extends Page {
-	// state = initialState
 	reducer = reducer
 	View = View
 
@@ -29,6 +28,6 @@ export default class TestPage extends Page {
 	}
 
 	goToHome = () => {
-		this.go('/')
+		this.goto('/')
 	}
 }

@@ -1,11 +1,3 @@
-export function toJSON(response) {
-	// 如果 response 状态异常，抛出错误
-	if (!response.ok || response.status !== 200) {
-		return Promise.reject(new Error(response.statusText))
-	}
-	return response.json()
-}
-
 export function timeoutReject(promise, time = 0) {
 	let timeoutReject = new Promise((_, reject) => {
 		setTimeout(() => reject(new Error(`Timeout Error:${time}ms`)), time)
@@ -19,4 +11,35 @@ export function isAbsoluteUrl(url) {
 
 export function isThenable(obj) {
 	return !!(obj && typeof obj.then === 'function')
+}
+
+export function isObject(obj) {
+	return obj != null && typeof obj === 'object'
+}
+
+export function isFunction(obj) {
+	return typeof obj === 'function'
+}
+
+export function checkComponent(Component) {
+	if (Component.prototype.componentWillMount) {
+		throw new Error('Deprecated API "componentWillMount" is unsupported')
+	}
+	if (Component.prototype.componentWillUpdate) {
+		throw new Error('Deprecated API "componentWillUpdate" is unsupported')
+	}
+	if (Component.prototype.componentWillReceiveProps) {
+		throw new Error('Deprecated API "componentWillReceiveProps" is unsupported')
+	}
+}
+
+export const isPlainObject = obj => {
+	if (typeof obj !== 'object' || obj === null) return false
+
+	let proto = obj
+	while (Object.getPrototypeOf(proto) !== null) {
+		proto = Object.getPrototypeOf(proto)
+	}
+
+	return Object.getPrototypeOf(obj) === proto
 }
