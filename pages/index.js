@@ -1,11 +1,10 @@
 import 'babel-polyfill'
 import React from 'react'
-import { Page, Link } from '../src'
+import { Page, Link } from 'next-mvc'
 
 export default class IndexPage extends Page {
-	constructor() {
-		super()
-		super.componentDidMount()
+	constructor(props) {
+		super(props)
 	}
 	API = {
 		next: 'https://api.github.com/repos/zeit/next.js',
@@ -69,7 +68,7 @@ export default class IndexPage extends Page {
 	}
 
 	goToTest = () => {
-		this.go('/test')
+		this.goto('/test')
 	}
 
 	componentDidMount() {

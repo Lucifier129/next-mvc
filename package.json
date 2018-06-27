@@ -1,14 +1,16 @@
 {
   "name": "next-mvc",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "an isomorphic mvc framework based on next.js, react, redux and immer",
   "main": "lib/index.js",
   "scripts": {
     "start": "next",
     "dev": "babel --watch src --out-dir lib",
     "build": "babel src --out-dir lib",
-    "test": "cross-env NODE_ENV=test jest __tests__",
+    "postbuild": "ncp src/isomorphic/cookie/package.json lib/isomorphic/cookie/package.json",
     "prebuild": "rimraf ./lib",
+    "wip:test": "cross-env NODE_ENV=test jest __tests__",
+    "test": "echo will do",
     "prepublishOnly": "npm test && npm run build"
   },
   "repository": {
@@ -39,8 +41,10 @@
     "@babel/preset-stage-0": "7.0.0-beta.42",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^22.4.3",
+    "babel-polyfill": "^6.26.0",
     "cross-env": "^5.2.0",
     "jest": "^22.4.3",
+    "ncp": "^2.0.0",
     "next": "^6.0.3",
     "puppeteer": "^1.5.0",
     "react": "^16.4.0",

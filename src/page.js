@@ -5,7 +5,7 @@ import qs from 'query-string'
 import Router from 'next/router'
 import getConfig from 'next/config'
 import fetch from 'isomorphic-fetch'
-import cookie from './isomorphic-cookie'
+import cookie from './isomorphic/cookie'
 import { format } from 'url'
 import * as util from './util'
 
@@ -47,6 +47,7 @@ export default class Page extends React.Component {
 	}
 
 	constructor(props) {
+		if (props == null) throw new Error('You probably forget pass props to super(props)')
 		super(props)
 		this.apiPrefix = ''
 		this.appPrefix = ''

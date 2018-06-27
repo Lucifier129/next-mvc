@@ -1,19 +1,12 @@
 {
-  "name": "isomorphic-cookie",
-  "version": "1.0.0",
-  "description": "isomorphic cookie helper",
-  "browser": "client.js",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "cookie"
-  ],
-  "author": "Jade Gu",
-  "license": "MIT",
-  "dependencies": {
-    "cookie": "^0.3.1",
-    "js-cookie": "^2.2.0"
-  }
+	"name": "isomorphic-cookie",
+	"version": "1.0.0",
+	"description": "isomorphic cookie helper",
+	"browser": "client.js",
+	"main": "server.js",
+	"keywords": [
+		"cookie"
+	],
+	"author": "Jade Gu",
+	"license": "MIT"
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import {Link} from 'next-mvc'
+import {Link} from '../../src'
 
 export default function View({ state, page }) {
 	return (
