@@ -15,7 +15,7 @@ const isClient = !isServer
 export default class Page extends React.Component {
 	static getInitialProps({ pathname, query, asPath, req, res }) {
 		util.checkComponent(this)
-		let { appPrefix = '' } = getConfig().publicRuntimeConfig
+		let { appPrefix = '' } = getConfig().publicRuntimeConfig || {}
 		asPath = appPrefix + asPath
 
 		let Page = this

@@ -1,6 +1,6 @@
 {
   "name": "next-mvc",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "an isomorphic mvc framework based on next.js, react, redux and immer",
   "main": "lib/index.js",
   "scripts": {
