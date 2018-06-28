@@ -13,8 +13,9 @@ const isServer = typeof window === 'undefined'
 const isClient = !isServer
 
 export default class Page extends React.Component {
-	static getInitialProps({ pathname, query, asPath, req, res }) {
+	static getInitialProps(context) {
 		util.checkComponent(this)
+		let { pathname, query, asPath, req, res } = context
 		let { appPrefix = '' } = getConfig().publicRuntimeConfig || {}
 		asPath = appPrefix + asPath
 
@@ -30,8 +31,15 @@ export default class Page extends React.Component {
 				return {}
 			}
 
+			initialState = {
+				...page.state,
+				...initialState
+			}
+
 			return {
 				initialState,
+				// make sure every url has its own react component instance
+				key: asPath,
 				pathname,
 				query,
 				asPath
@@ -40,14 +48,17 @@ export default class Page extends React.Component {
 
 		// handle get initial state
 		if (page.getInitialState) {
-			return handleInitialState(page.getInitialState())
+			return handleInitialState(
+				page.getInitialState({ ...context, ...page.props })
+			)
 		}
 
 		return handleInitialState()
 	}
 
 	constructor(props) {
-		if (props == null) throw new Error('You probably forget pass props to super(props)')
+		if (props == null)
+			throw new Error('You probably forget pass props to super(props)')
 		super(props)
 		this.apiPrefix = ''
 		this.appPrefix = ''
@@ -64,11 +75,11 @@ export default class Page extends React.Component {
 	}
 
 	render() {
-		let View = this.View
+		let { View } = this
 		if (!View) {
 			return null
 		}
-		return <View state={this.state} page={this} handlers={this} ctrl={this} />
+		return <View state={this.state} page={this} />
 	}
 
 	get store() {
