@@ -11,6 +11,7 @@ import * as util from './util'
 
 const isServer = typeof window === 'undefined'
 const isClient = !isServer
+const redirected = {}
 
 export default class Page extends React.Component {
 	static getInitialProps(context) {
@@ -19,11 +20,21 @@ export default class Page extends React.Component {
 		let { appPrefix = '' } = getConfig().publicRuntimeConfig || {}
 		asPath = appPrefix + asPath
 
-		let Page = this
+		let Page = class extends this {
+			// throw error to make sure user code will not go on after redirect
+			redirect(...args) {
+				super.redirect(...args)
+				throw redirected
+			}
+		}
 		let page = new Page({ pathname, query, asPath, req, res })
+		let handleError = error => {
+			if (error === redirected) return {}
+			throw error
+		}
 		let handleInitialState = initialState => {
 			if (util.isThenable(initialState)) {
-				return initialState.then(handleInitialState)
+				return initialState.then(handleInitialState, handleError)
 			}
 
 			// handle redirect
@@ -48,12 +59,17 @@ export default class Page extends React.Component {
 
 		// handle get initial state
 		if (page.getInitialState) {
-			return handleInitialState(
-				page.getInitialState({ ...context, ...page.props })
-			)
+			try {
+				return handleInitialState(
+					page.getInitialState({ ...context, ...page.props })
+				)
+			} catch (error) {
+				handleError(error)
+				return {}
+			}
+		} else {
+			return handleInitialState()
 		}
-
-		return handleInitialState()
 	}
 
 	constructor(props) {

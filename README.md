@@ -8,7 +8,9 @@
 
 ## Installation
 
-npm install --save next-mvc
+```shell
+npm install --save next-mvc next react react-dom
+```
 
 # Table of Contents 👇
 
@@ -20,11 +22,14 @@ npm install --save next-mvc
 
 ## Usage
 
+示例项目 [next-mvc-cnode](https://github.com/Lucifier129/next-mvc-cnode)
+
 ```jsx
 import { Page } from 'next-mvc'
 import React from 'react'
 
 export default class MyPage extends Page {
+	// do async logic in getInitialState
 	async getInitialState() {
 		const url = 'https://api.github.com/repos/zeit/next.js'
 		const json = await this.fetch(url)
@@ -45,6 +50,12 @@ export default class MyPage extends Page {
 ### Page Component
 
 `Page` 类是继承 `React.Component` 的一个子类，它拥有跟 `React.Component` 一样的生命周期和方法。同时拓展了一些便利的同构方法，以及整合了 redux 等库。
+
+### page.getInitialState(context)
+
+page.getInitialState 方法是 SSR 的关键，它接受的参数跟 next.js 的 `getInitialProps` 一样，差别在于后者会出现在组件的 props 里，而 `getInitialState` 的返回值，会出现在组件的 state 里。
+
+最好不要同时声明  this.state 和 `getInitialState` 方法，避免冲突。
 
 ### page.fetch(url:String, [options:Object])
 
@@ -112,6 +123,15 @@ page.goto 方法用以跳转页面。
 ### page.redirect(url:String, [raw:Boolean])
 
 page.redirect 方法可实现重定向功能。是 `page.goto(url, true, raw)` 的一个封装。
+
+在 page.getInitialState 内直接或间接调用 page.redirect 方法，会有一个额外作用。
+
+- page.redirect 会 throw error 以中断你的代码
+- 你的代码里不需要判断 redirected 状态来进行下一步
+
+### page.isRedirected()
+
+page.isRedirected 方法用以判断 page 是否已重定向到其它页面。
 
 ### page.getCookie(key:String)
 
