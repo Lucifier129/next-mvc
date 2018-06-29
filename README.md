@@ -129,10 +129,6 @@ page.redirect 方法可实现重定向功能。是 `page.goto(url, true, raw)` �
 - page.redirect 会 throw error 以中断你的代码
 - 你的代码里不需要判断 redirected 状态来进行下一步
 
-### page.isRedirected()
-
-page.isRedirected 方法用以判断 page 是否已重定向到其它页面。
-
 ### page.getCookie(key:String)
 
 page.getCookie 用以获取 cookie 里跟 key 参数对应的 value 值。
