@@ -1,7 +1,7 @@
 import React from 'react'
 import { createStore } from 'redux'
 import immer from 'immer'
-import qs from 'query-string'
+import querystring from 'querystring'
 import Router from 'next/router'
 import getConfig from 'next/config'
 import fetch from 'isomorphic-fetch'
@@ -387,7 +387,7 @@ export default class Page extends React.Component {
 		// handle api params
 		if (params) {
 			let delimiter = api.indexOf('?') !== -1 ? '&' : '?'
-			api += delimiter + qs.stringify(params)
+			api += delimiter + querystring.stringify(params)
 		}
 
 		return this.fetch(api, {
