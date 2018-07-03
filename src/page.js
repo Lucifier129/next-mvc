@@ -320,23 +320,10 @@ export default class Page extends React.Component {
 		}
 
 		let { responseType = 'json', response = false } = options
-		let contentTypes = {
-			json: 'application/json',
-			text: 'text/plain'
-		}
-
 		let finalOptions = {
 			method: 'GET',
 			credentials: 'include',
 			...options
-		}
-
-		// handle content type
-		if (contentTypes.hasOwnProperty(responseType)) {
-			finalOptions.headers = {
-				'Content-Type': contentTypes[responseType],
-				...options.headers
-			}
 		}
 
 		/**
@@ -399,9 +386,13 @@ export default class Page extends React.Component {
 	 *
 	 * post method
 	 */
-	post(api, data, options) {
+	post(api, data, options = {}) {
 		return this.fetch(api, {
 			...options,
+			headers: {
+				...options.headers,
+				'Content-Type': 'application/json'
+			},
 			method: 'POST',
 			body: util.isPlainObject(data) ? JSON.stringify(data) : data
 		})
