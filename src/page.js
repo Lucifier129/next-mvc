@@ -330,7 +330,10 @@ export default class Page extends React.Component {
 		 * add cookie from props.req in server side
 		 */
 		if (this.isServer && finalOptions.credentials === 'include') {
-			finalOptions.headers['Cookie'] = props.req.headers.cookie || ''
+			finalOptions.headers = {
+				...options.headers,
+				Cookie: props.req.headers.cookie || ''
+			}
 		}
 
 		// use options.fetch if existed
