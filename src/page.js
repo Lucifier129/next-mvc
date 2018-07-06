@@ -3,7 +3,7 @@ import { createStore } from 'redux'
 import immer from 'immer'
 import querystring from 'querystring'
 import Router from 'next/router'
-import getConfig from 'next/config'
+import getConfig, { setConfig } from 'next/config'
 import fetch from 'isomorphic-fetch'
 import cookie from './isomorphic/cookie'
 import { format } from 'url'
@@ -17,17 +17,20 @@ export default class Page extends React.Component {
 	static getInitialProps(context) {
 		util.checkComponent(this)
 		let { pathname, query, asPath, req, res } = context
-		let { appPrefix = '' } = getConfig().publicRuntimeConfig || {}
+		let config = getConfig() || {}
+		let { appPrefix = '' } = config.publicRuntimeConfig || {}
 		asPath = appPrefix + asPath
 
-		let Page = class extends this {
-			// throw error to make sure user code will not go on after redirect
-			redirect(...args) {
-				super.redirect(...args)
-				throw redirected
-			}
-		}
+		let Page = this
 		let page = new Page({ pathname, query, asPath, req, res })
+		let redirect = page.redirect
+
+		// throw error to make sure user code will not go on after redirected
+		page.redirect = (...args) => {
+			 redirect.apply(page, ...args)
+			 throw redirected
+		}
+
 		let handleError = error => {
 			if (error === redirected) return {}
 			throw error
@@ -293,7 +296,7 @@ export default class Page extends React.Component {
 
 	// get config
 	getConfig(name) {
-		let { publicRuntimeConfig, serverRuntimeConfig } = getConfig()
+		let { publicRuntimeConfig, serverRuntimeConfig } = getConfig() || {}
 		let config = {
 			...publicRuntimeConfig,
 			...serverRuntimeConfig
