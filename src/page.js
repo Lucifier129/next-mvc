@@ -27,8 +27,8 @@ export default class Page extends React.Component {
 
 		// throw error to make sure user code will not go on after redirected
 		page.redirect = (...args) => {
-			 redirect.apply(page, ...args)
-			 throw redirected
+			redirect.apply(page, ...args)
+			throw redirected
 		}
 
 		let handleError = error => {
@@ -348,6 +348,11 @@ export default class Page extends React.Component {
 		 */
 		if (!response && responseType) {
 			fetchData = fetchData.then(res => {
+				/**
+				 * options.fetch may return data directly
+				 * check whether res is response or not
+				 */
+				if (!util.isResponse(res)) return res
 				if (!(responseType in res))
 					throw new Error(`${responseType} type is unsupported`)
 				return res[responseType]()

@@ -21,6 +21,17 @@ export function isFunction(obj) {
 	return typeof obj === 'function'
 }
 
+/**
+ * 
+ * check whether obj is the response of fetch API in a loose way
+ */
+export function isResponse(obj) {
+	if (!obj) return false
+	if (typeof obj.json !== 'function') return false
+	if (typeof obj.text !== 'function') return false
+	return true
+}
+
 export function checkComponent(Component) {
 	if (Component.prototype.componentWillMount) {
 		throw new Error('Deprecated API "componentWillMount" is unsupported')
