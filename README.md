@@ -55,8 +55,6 @@ export default class MyPage extends Page {
 
 page.getInitialState 方法是 SSR 的关键，它接受的参数跟 next.js 的 `getInitialProps` 一样，差别在于后者会出现在组件的 props 里，而 `getInitialState` 的返回值，会出现在组件的 state 里。
 
-最好不要同时声明  this.state 和 `getInitialState` 方法，避免冲突。
-
 ### page.fetch(url:String, [options:Object])
 
 fetch 方法用来跟服务端进行 http 或 https 通讯，它的用法和参数跟浏览器里自带的 fetch 函数一样。全局 fetch 函数的[使用文档](https://github.github.io/fetch/)
