@@ -25,7 +25,8 @@
     "immer"
   ],
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "author": "Jade Gu",
   "license": "ISC",
