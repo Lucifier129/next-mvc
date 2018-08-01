@@ -27,8 +27,14 @@ export default class Page extends React.Component {
 
 		// throw error to make sure user code will not go on after redirected
 		page.redirect = (...args) => {
-			redirect.apply(page, ...args)
+			redirect.apply(page, args)
 			throw redirected
+		}
+
+		// overwrite setState to prevent react transaction
+		page.setState = (newState, callback) => {
+			page.state = { ...page.state, ...newState }
+			callback && callback()
 		}
 
 		let handleError = error => {
@@ -75,6 +81,17 @@ export default class Page extends React.Component {
 		}
 	}
 
+	static getDerivedStateFromProps(props, state) {
+		if (!state.$hydrate && props.initialState) {
+			return {
+				...state,
+				...props.initialState,
+				$hydrate: true
+			}
+		}
+		return state
+	}
+
 	constructor(props) {
 		if (props == null)
 			throw new Error('You probably forget pass props to super(props)')
@@ -88,9 +105,7 @@ export default class Page extends React.Component {
 		this.$actions = null
 		this.$store = null
 		this.$cookie = cookie
-		this.state = {
-			...props.initialState
-		}
+		this.state = {}
 	}
 
 	render() {
@@ -186,12 +201,8 @@ export default class Page extends React.Component {
 			this.attachReduxDevtoolsIfNeeded(enhancer)
 		)
 		store.unsubscribe = store.subscribe(() => {
-			if (isClient) {
-				let nextState = store.getState()
-				this.setState(nextState)
-			} else if (isServer) {
-				this.state = store.getState()
-			}
+			let nextState = store.getState()
+			this.setState(nextState)
 		})
 		Object.defineProperty(store, 'actions', {
 			get: () => this.actions
@@ -283,7 +294,7 @@ export default class Page extends React.Component {
 	}
 
 	redirect(url, raw) {
-		return this.goto(url, true, raw)
+		this.goto(url, true, raw)
 	}
 
 	back() {

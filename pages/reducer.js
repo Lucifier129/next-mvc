@@ -1,10 +1,14 @@
 import 'babel-polyfill'
 import React from 'react'
-import { Page } from 'next-mvc'
+import { Page } from '../src'
 
 export default class IndexPage extends Page {
 	state = {
 		count: 0
+	}
+
+	async getInitialState() {
+		this.actions.count(10)
 	}
 
 	reducer = {
